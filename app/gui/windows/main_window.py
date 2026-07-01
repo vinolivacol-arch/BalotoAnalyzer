@@ -1,11 +1,12 @@
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QLabel,
     QMainWindow,
+    QSplitter,
+    QStackedWidget,
     QStatusBar,
-    QVBoxLayout,
-    QWidget,
 )
+
+from app.gui.pages.dashboard_page import DashboardPage
+from app.gui.widgets.sidebar import Sidebar
 
 
 class MainWindow(QMainWindow):
@@ -17,20 +18,33 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("BalotoAnalyzer")
         self.resize(1200, 800)
 
-        # Área central
-        container = QWidget()
-        layout = QVBoxLayout(container)
+        self._create_ui()
 
-        title = QLabel("🎲 Bienvenido a BalotoAnalyzer")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    def _create_ui(self) -> None:
+        splitter = QSplitter()
 
-        layout.addStretch()
-        layout.addWidget(title)
-        layout.addStretch()
+        self.sidebar = Sidebar()
 
-        self.setCentralWidget(container)
+        self.pages = QStackedWidget()
+        self.pages.addWidget(DashboardPage())
 
-        # Barra de estado
+        splitter.addWidget(self.sidebar)
+        splitter.addWidget(self.pages)
+
+        splitter.setStretchFactor(0, 0)
+        splitter.setStretchFactor(1, 1)
+
+        self.setCentralWidget(splitter)
+
         status = QStatusBar()
         status.showMessage("Listo")
         self.setStatusBar(status)
+
+        self.sidebar.currentRowChanged.connect(self.change_page)
+
+    def change_page(self, index: int) -> None:
+        """Cambia la página mostrada."""
+
+        if 0 <= index < self.pages.count():
+            self.pages.setCurrentIndex(index)
+
